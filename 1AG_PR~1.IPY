@@ -1,0 +1,814 @@
+{
+  "metadata": {
+    "kernelspec": {
+      "name": "python",
+      "display_name": "Python (Pyodide)",
+      "language": "python"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "python",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.8"
+    },
+    "celltoolbar": "Slideshow"
+  },
+  "nbformat_minor": 5,
+  "nbformat": 4,
+  "cells": [
+    {
+      "id": "c2eb3186-f00c-400f-965a-f3496bbea4c2",
+      "cell_type": "markdown",
+      "source": "#   Predicting the Logistic Performance Index indicator (LPI) of the World Bank using Dimensional reduction(Principal components Analysis)",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "d0863b07-e2cf-4882-a3b0-3a924471eb05",
+      "cell_type": "markdown",
+      "source": "* With material from amoeba (https://stats.stackexchange.com/users/28666/amoeba), Making sense of principal component analysis, eigenvectors & eigenvalues, URL (version: 2021-12-03): https://stats.stackexchange.com/q/140579.",
+      "metadata": {}
+    },
+    {
+      "id": "challenging-alabama",
+      "cell_type": "markdown",
+      "source": "* So let's imagine that we have only two features, which are shown in the next image.\n\n* Features are two different dimensions.\n\n* Each of our observations is described by a pair of coordinates $(x, y)$ with the values ​​of the two dimensions for the observation.\n\n* If we wanted each of our observations to be described by *one* and only dimension, i.e. by *one* number, $z$, what would that dimension be?",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "2e25da49-18f2-41cf-ab7b-c70cd7d10107",
+      "cell_type": "markdown",
+      "source": "* We would like to find some characteristics which on the one hand differ as much as possible from wine to wine (because if a characteristic is the same in all wines, it does not tell us anything).\n\n* Also the characteristics we will find we would like to echo as much as possible the initial characteristics we have collected for each wine.\n\n* It is not necessary that the features we find are a subset of the original features!\n\n* These features can be *new* features (which are related to existing ones), but not any of the existing ones.",
+      "metadata": {}
+    },
+    {
+      "id": "european-abuse",
+      "cell_type": "markdown",
+      "source": "<img src=\"https://i.stack.imgur.com/jPw90.png\" />\n\nhttps://stats.stackexchange.com/a/140579",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "cultural-explanation",
+      "cell_type": "markdown",
+      "source": "* To remember what we desire.\n\n* We want the new dimension we will find to be such that our data has the greatest possible variability, variance, in it.\n\n* We also want the data in the new dimension to be as close as possible to the data in their original dimensions.\n\n* In the next image, we can see what this dimension will be.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "swiss-sunrise",
+      "cell_type": "markdown",
+      "source": "* By rotating the axis corresponding to this new dimension, we can see which is the position that satisfies the criteria we set:\n\n * On the diagonal that crosses the data, the variance of our data views (the red dots) is the maximum possible.\n\n * Also on the diagonal crossing the data, the distances of the projections from the original data (the red lines) are the smallest possible.\n\n\n<img src=\"https://i.stack.imgur.com/Q7HIP.gif\" />\n\nSource: https://stats.stackexchange.com/a/140579",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "knowing-fusion",
+      "cell_type": "markdown",
+      "source": "<img width=\"500\" src=\"https://upload.wikimedia.org/wikipedia/commons/f/f5/GaussianScatterPCA.svg\" />",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "pretty-spanking",
+      "cell_type": "markdown",
+      "source": "* The process by which we find these new dimensions is called *Principal Component Analysis*.\n\n* There is an efficient algorithm to find the components (dimensions) we are looking for.\n\n* The method belongs to unsupervised Machine Learning, since we do not have a dataset and solutions.\n\n* We only have one data set and the number of dimensions we are looking for.\n\n* So it falls into the category of *dimensionality reduction*.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "scheduled-model",
+      "cell_type": "markdown",
+      "source": "* Let's see this in action.\n\n* Let's remember the [Logistic Performance Index indicator (LPI) of the World Bank](https://lpi.worldbank.org/).\n\n* The World Bank measures, as we have seen, six individual indicators.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "optimum-fellow",
+      "cell_type": "markdown",
+      "source": "* Competence and quality of logistics services.\n\n* Frequency with which shipments reach consignee within scheduled or expected time.\n\n* Ease of arranging competitively priced shipments.\n\n* Quality of trade and transport-related infrastructure.\n\n* Ability to track and trace consignments.\n\n* Efficiency of customs clearance process.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "awful-radiation",
+      "cell_type": "markdown",
+      "source": "* From these six individual indices, it composes a single index.\n\n* How is the single index derived from the six individual ones?\n\n* Could one just average them.\n\n* But is this reasonable?\n\n* To see this, we will use PCA.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "architectural-brown",
+      "cell_type": "markdown",
+      "source": "* Let's read the LPI data.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "interesting-range",
+      "cell_type": "code",
+      "source": "import pandas as pd\n\nlpi_df = pd.read_csv(\"International_LPI_2018.csv\")\nlpi_df",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Country</th>\n",
+              "      <th>LPI</th>\n",
+              "      <th>Customs</th>\n",
+              "      <th>Infrastructure</th>\n",
+              "      <th>International shipments</th>\n",
+              "      <th>Logistics quality and competence</th>\n",
+              "      <th>Tracking and tracing</th>\n",
+              "      <th>Timeliness</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>Germany</td>\n",
+              "      <td>4.20</td>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.37</td>\n",
+              "      <td>3.86</td>\n",
+              "      <td>4.31</td>\n",
+              "      <td>4.24</td>\n",
+              "      <td>4.39</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>Sweden</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.24</td>\n",
+              "      <td>3.92</td>\n",
+              "      <td>3.98</td>\n",
+              "      <td>3.88</td>\n",
+              "      <td>4.28</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>Belgium</td>\n",
+              "      <td>4.04</td>\n",
+              "      <td>3.66</td>\n",
+              "      <td>3.98</td>\n",
+              "      <td>3.99</td>\n",
+              "      <td>4.13</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.41</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>Austria</td>\n",
+              "      <td>4.03</td>\n",
+              "      <td>3.71</td>\n",
+              "      <td>4.18</td>\n",
+              "      <td>3.88</td>\n",
+              "      <td>4.08</td>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.25</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>Japan</td>\n",
+              "      <td>4.03</td>\n",
+              "      <td>3.99</td>\n",
+              "      <td>4.25</td>\n",
+              "      <td>3.59</td>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.25</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>...</th>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>155</th>\n",
+              "      <td>Sierra Leone</td>\n",
+              "      <td>2.08</td>\n",
+              "      <td>1.82</td>\n",
+              "      <td>1.82</td>\n",
+              "      <td>2.18</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.27</td>\n",
+              "      <td>2.34</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>156</th>\n",
+              "      <td>Niger</td>\n",
+              "      <td>2.07</td>\n",
+              "      <td>1.77</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.10</td>\n",
+              "      <td>2.22</td>\n",
+              "      <td>2.33</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>157</th>\n",
+              "      <td>Burundi</td>\n",
+              "      <td>2.06</td>\n",
+              "      <td>1.69</td>\n",
+              "      <td>1.95</td>\n",
+              "      <td>2.21</td>\n",
+              "      <td>2.33</td>\n",
+              "      <td>2.01</td>\n",
+              "      <td>2.17</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>158</th>\n",
+              "      <td>Angola</td>\n",
+              "      <td>2.05</td>\n",
+              "      <td>1.57</td>\n",
+              "      <td>1.86</td>\n",
+              "      <td>2.20</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.59</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>159</th>\n",
+              "      <td>Afghanistan</td>\n",
+              "      <td>1.95</td>\n",
+              "      <td>1.73</td>\n",
+              "      <td>1.81</td>\n",
+              "      <td>2.10</td>\n",
+              "      <td>1.92</td>\n",
+              "      <td>1.70</td>\n",
+              "      <td>2.38</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>160 rows × 8 columns</p>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "          Country   LPI  Customs  Infrastructure  International shipments  \\\n",
+              "0         Germany  4.20     4.09            4.37                     3.86   \n",
+              "1          Sweden  4.05     4.05            4.24                     3.92   \n",
+              "2         Belgium  4.04     3.66            3.98                     3.99   \n",
+              "3         Austria  4.03     3.71            4.18                     3.88   \n",
+              "4           Japan  4.03     3.99            4.25                     3.59   \n",
+              "..            ...   ...      ...             ...                      ...   \n",
+              "155  Sierra Leone  2.08     1.82            1.82                     2.18   \n",
+              "156         Niger  2.07     1.77            2.00                     2.00   \n",
+              "157       Burundi  2.06     1.69            1.95                     2.21   \n",
+              "158        Angola  2.05     1.57            1.86                     2.20   \n",
+              "159   Afghanistan  1.95     1.73            1.81                     2.10   \n",
+              "\n",
+              "     Logistics quality and competence  Tracking and tracing  Timeliness  \n",
+              "0                                4.31                  4.24        4.39  \n",
+              "1                                3.98                  3.88        4.28  \n",
+              "2                                4.13                  4.05        4.41  \n",
+              "3                                4.08                  4.09        4.25  \n",
+              "4                                4.09                  4.05        4.25  \n",
+              "..                                ...                   ...         ...  \n",
+              "155                              2.00                  2.27        2.34  \n",
+              "156                              2.10                  2.22        2.33  \n",
+              "157                              2.33                  2.01        2.17  \n",
+              "158                              2.00                  2.00        2.59  \n",
+              "159                              1.92                  1.70        2.38  \n",
+              "\n",
+              "[160 rows x 8 columns]"
+            ]
+          },
+          "execution_count": 1,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 1
+    },
+    {
+      "id": "alternate-winning",
+      "cell_type": "markdown",
+      "source": "* We will work with the columns related to the individual indicators.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "expected-works",
+      "cell_type": "code",
+      "source": "lpi_components = [\n    'Customs',\n    'Infrastructure',\n    'International shipments',\n    'Logistics quality and competence',\n    'Tracking and tracing',\n    'Timeliness'\n]\n\nlpi_components = lpi_df[lpi_components]\nlpi_components",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Customs</th>\n",
+              "      <th>Infrastructure</th>\n",
+              "      <th>International shipments</th>\n",
+              "      <th>Logistics quality and competence</th>\n",
+              "      <th>Tracking and tracing</th>\n",
+              "      <th>Timeliness</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.37</td>\n",
+              "      <td>3.86</td>\n",
+              "      <td>4.31</td>\n",
+              "      <td>4.24</td>\n",
+              "      <td>4.39</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.24</td>\n",
+              "      <td>3.92</td>\n",
+              "      <td>3.98</td>\n",
+              "      <td>3.88</td>\n",
+              "      <td>4.28</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>3.66</td>\n",
+              "      <td>3.98</td>\n",
+              "      <td>3.99</td>\n",
+              "      <td>4.13</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.41</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>3.71</td>\n",
+              "      <td>4.18</td>\n",
+              "      <td>3.88</td>\n",
+              "      <td>4.08</td>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.25</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>3.99</td>\n",
+              "      <td>4.25</td>\n",
+              "      <td>3.59</td>\n",
+              "      <td>4.09</td>\n",
+              "      <td>4.05</td>\n",
+              "      <td>4.25</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>...</th>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>155</th>\n",
+              "      <td>1.82</td>\n",
+              "      <td>1.82</td>\n",
+              "      <td>2.18</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.27</td>\n",
+              "      <td>2.34</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>156</th>\n",
+              "      <td>1.77</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.10</td>\n",
+              "      <td>2.22</td>\n",
+              "      <td>2.33</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>157</th>\n",
+              "      <td>1.69</td>\n",
+              "      <td>1.95</td>\n",
+              "      <td>2.21</td>\n",
+              "      <td>2.33</td>\n",
+              "      <td>2.01</td>\n",
+              "      <td>2.17</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>158</th>\n",
+              "      <td>1.57</td>\n",
+              "      <td>1.86</td>\n",
+              "      <td>2.20</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.00</td>\n",
+              "      <td>2.59</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>159</th>\n",
+              "      <td>1.73</td>\n",
+              "      <td>1.81</td>\n",
+              "      <td>2.10</td>\n",
+              "      <td>1.92</td>\n",
+              "      <td>1.70</td>\n",
+              "      <td>2.38</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>160 rows × 6 columns</p>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "     Customs  Infrastructure  International shipments  \\\n",
+              "0       4.09            4.37                     3.86   \n",
+              "1       4.05            4.24                     3.92   \n",
+              "2       3.66            3.98                     3.99   \n",
+              "3       3.71            4.18                     3.88   \n",
+              "4       3.99            4.25                     3.59   \n",
+              "..       ...             ...                      ...   \n",
+              "155     1.82            1.82                     2.18   \n",
+              "156     1.77            2.00                     2.00   \n",
+              "157     1.69            1.95                     2.21   \n",
+              "158     1.57            1.86                     2.20   \n",
+              "159     1.73            1.81                     2.10   \n",
+              "\n",
+              "     Logistics quality and competence  Tracking and tracing  Timeliness  \n",
+              "0                                4.31                  4.24        4.39  \n",
+              "1                                3.98                  3.88        4.28  \n",
+              "2                                4.13                  4.05        4.41  \n",
+              "3                                4.08                  4.09        4.25  \n",
+              "4                                4.09                  4.05        4.25  \n",
+              "..                                ...                   ...         ...  \n",
+              "155                              2.00                  2.27        2.34  \n",
+              "156                              2.10                  2.22        2.33  \n",
+              "157                              2.33                  2.01        2.17  \n",
+              "158                              2.00                  2.00        2.59  \n",
+              "159                              1.92                  1.70        2.38  \n",
+              "\n",
+              "[160 rows x 6 columns]"
+            ]
+          },
+          "execution_count": 2,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 2
+    },
+    {
+      "id": "analyzed-jumping",
+      "cell_type": "markdown",
+      "source": "* Since PCA uses variance to identify the dimensions we are looking for, it is a method that can (or needs) normalize the data.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "favorite-mistake",
+      "cell_type": "code",
+      "source": "from sklearn.preprocessing import StandardScaler\n\nstandard_scaler = StandardScaler()\nlpi_components_standard_scaled = standard_scaler.fit_transform(lpi_components)",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [],
+      "execution_count": 3
+    },
+    {
+      "id": "colonial-bailey",
+      "cell_type": "markdown",
+      "source": "* Proceed to PCA.\n\n* We want to do PCA to identify *one* component.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "attended-andrews",
+      "cell_type": "code",
+      "source": "from sklearn.decomposition import PCA\n\npca = PCA(n_components=1)",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [],
+      "execution_count": 4
+    },
+    {
+      "id": "gorgeous-monte",
+      "cell_type": "markdown",
+      "source": "* We apply PCA to our data.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "japanese-highlight",
+      "cell_type": "code",
+      "source": "pca.fit(lpi_components_standard_scaled)",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "PCA(n_components=1)"
+            ]
+          },
+          "execution_count": 5,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 5
+    },
+    {
+      "id": "swedish-prefix",
+      "cell_type": "markdown",
+      "source": "* The `explained_variance_ratio` property tells us how much of the variance is explained by the calculated component (dimension).\n\n* We see that it explains over 92%!",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "destroyed-kenya",
+      "cell_type": "code",
+      "source": "pca.explained_variance_ratio_",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "array([0.92257629])"
+            ]
+          },
+          "execution_count": 6,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 6
+    },
+    {
+      "id": "heavy-stream",
+      "cell_type": "markdown",
+      "source": "* We can then project our data onto this dimension.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "secondary-planet",
+      "cell_type": "code",
+      "source": "transformed = pca.transform(lpi_components_standard_scaled)\ntransformed[:10]",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "array([[5.54547364],\n",
+              "       [4.93808946],\n",
+              "       [4.86533482],\n",
+              "       [4.81834623],\n",
+              "       [4.81569261],\n",
+              "       [4.79085083],\n",
+              "       [4.69701109],\n",
+              "       [4.68746366],\n",
+              "       [4.65614658],\n",
+              "       [4.58455542]])"
+            ]
+          },
+          "execution_count": 7,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 7
+    },
+    {
+      "id": "corresponding-leone",
+      "cell_type": "markdown",
+      "source": "* What does this view do?\n\n* The resulting new dimension is a linear combination of the existing ones.\n\n* The coefficients of the linear combination are given by the `components_` property.\n\n* The coefficients of the principal components are called *loadings*.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "appreciated-draft",
+      "cell_type": "code",
+      "source": "pca.components_",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "array([[0.40728498, 0.41303479, 0.39604297, 0.41660675, 0.41067906,\n",
+              "        0.40552768]])"
+            ]
+          },
+          "execution_count": 8,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 8
+    },
+    {
+      "id": "cognitive-shipping",
+      "cell_type": "markdown",
+      "source": "* Thus, if we have the six individual indicators (dimensions), the new dimension results from the relationship:\n\n$$ 0{,}40728498 x_1 + 0{,}41303479 x_2 + 0{,}39604297 x_3 + 0{,}41660675 x_4 + 0{,}41067906 x_5 + 0{,}40552768 x_6 $$",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "guided-essex",
+      "cell_type": "markdown",
+      "source": "* So we could use the `transformed` value as the LPI index.\n\n* But it does not range from 1 to 5.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "removable-count",
+      "cell_type": "code",
+      "source": "print(transformed.min(), transformed.max())",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "-3.816178904589358 5.545473639886474\n"
+          ]
+        }
+      ],
+      "execution_count": 9
+    },
+    {
+      "id": "harmful-arbor",
+      "cell_type": "markdown",
+      "source": "* We can overcome the problem by considering that we can use the loadings to calculate the weighted average of the individual indices.\n\n* Indeed, the values ​​we get are very close to the final LPI values ​​published by the World Bank.",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    },
+    {
+      "id": "fallen-capacity",
+      "cell_type": "code",
+      "source": "import numpy as np\n\nnp.average(lpi_components, axis=1, weights=pca.components_[0])[:10]",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "fragment"
+        }
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "array([4.2122752 , 4.05869046, 4.03685368, 4.03281921, 4.03928615,\n",
+              "       4.03042283, 4.00731942, 4.00371973, 3.99503935, 3.98022523])"
+            ]
+          },
+          "execution_count": 10,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "execution_count": 10
+    },
+    {
+      "id": "universal-gazette",
+      "cell_type": "markdown",
+      "source": "* What did we achieve?\n\n* We went from six dimensions to one.\n\n* More generally, we can have many more dimensions and want to reduce them:\n\n  * Because the dimensions are more than we can handle.\n\n  * Because the dimensions may be redundant (noise).\n\n  * Because with fewer dimensions we can understand our problems better.\n\n* But it is important tobe able to interpret the new dimensions!",
+      "metadata": {
+        "slideshow": {
+          "slide_type": "slide"
+        }
+      }
+    }
+  ]
+}
